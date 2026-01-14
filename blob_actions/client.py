@@ -71,6 +71,32 @@ class ConnectBlob:
         if remove_keep:
             self._remove_placeholders(uploaded_prefixes)
 
+    def delete_file(self, blob_name: str) -> None:
+        blob_name = blob_name.strip("/")
+        if not blob_name:
+            raise ValueError("blob_name is required")
+        blob_client = self._service_client.get_blob_client(self.container_name, blob_name)
+        try:
+            blob_client.delete_blob()
+        except ResourceNotFoundError:
+            pass
+
+    def delete_folder(self, prefix: str) -> None:
+        prefix = prefix.strip("/")
+        if prefix:
+            name_starts_with = prefix + "/"
+        else:
+            name_starts_with = ""
+        container_client = self._service_client.get_container_client(self.container_name)
+        try:
+            for blob in container_client.list_blobs(name_starts_with=name_starts_with):
+                try:
+                    container_client.delete_blob(blob.name)
+                except ResourceNotFoundError:
+                    pass
+        except ResourceNotFoundError:
+            pass
+
     def _ensure_container(self) -> None:
         try:
             self._service_client.create_container(self.container_name)

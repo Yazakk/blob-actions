@@ -70,6 +70,66 @@ client.upload_tree(
   Uploads all local files under `local_root` into `blob_prefix`. If
   `remove_keep` is `True`, removes `.keep` placeholders under uploaded prefixes.
 
+- `delete_file(blob_name: str) -> None`
+  Deletes a single blob. Missing blobs are ignored.
+
+- `delete_folder(prefix: str) -> None`
+  Deletes all blobs under a prefix (including `.keep`). Missing containers or
+  blobs are ignored.
+
+## Snippets
+
+```python
+from blob_actions import ConnectBlob
+
+client = ConnectBlob(
+    connection_string="DefaultEndpointsProtocol=...",
+    container_name="my-container",
+)
+```
+
+```python
+# ensure_path
+client.ensure_path("document_classification/credit/sme-origination")
+```
+
+```python
+# ensure_tree
+tree = {
+    "data": {
+        "incoming": {},
+        "test": {},
+        "train": {},
+    },
+    "output": {},
+    "report": {},
+}
+client.ensure_tree("document_classification/credit/sme-origination", tree)
+```
+
+```python
+# create_local_tree
+client.create_local_tree("/tmp/project", tree)
+```
+
+```python
+# upload_tree
+client.upload_tree(
+    local_root="/tmp/project",
+    blob_prefix="document_classification/credit/sme-origination",
+)
+```
+
+```python
+# delete_file
+client.delete_file("document_classification/credit/sme-origination/data/incoming/file.csv")
+```
+
+```python
+# delete_folder
+client.delete_folder("document_classification/credit/sme-origination/data/incoming")
+```
+
 ## Tree spec format
 
 Dictionary-only format:
