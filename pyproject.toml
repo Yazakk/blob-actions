@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blob-actions"
+version = "0.1.0"
+description = "Reusable helpers for blob prefix skeletons and uploads."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "azure-storage-blob>=12.14.1,<13.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["blob_actions*"]
