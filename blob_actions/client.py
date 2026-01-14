@@ -1,7 +1,7 @@
 import os
 from typing import Dict, Iterable, List, Optional, Set
 
-from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+from azure.core.exceptions import HttpResponseError, ResourceExistsError, ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
 from blob_actions.tree import collect_leaf_prefixes, create_local_tree, is_hidden_path, join_prefix
@@ -89,13 +89,21 @@ class ConnectBlob:
             name_starts_with = ""
         container_client = self._service_client.get_container_client(self.container_name)
         try:
-            for blob in container_client.list_blobs(name_starts_with=name_starts_with):
-                try:
-                    container_client.delete_blob(blob.name)
-                except ResourceNotFoundError:
-                    pass
+            blob_names = [
+                blob.name
+                for blob in container_client.list_blobs(name_starts_with=name_starts_with)
+            ]
         except ResourceNotFoundError:
-            pass
+            return
+        for blob_name in sorted(blob_names, key=len, reverse=True):
+            try:
+                container_client.delete_blob(blob_name)
+            except ResourceNotFoundError:
+                pass
+            except HttpResponseError as exc:
+                if getattr(exc, "error_code", None) == "DirectoryNotEmpty":
+                    continue
+                raise
 
     def _ensure_container(self) -> None:
         try:
